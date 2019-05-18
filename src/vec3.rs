@@ -167,15 +167,15 @@ impl Vec3 {
         v / v.length()
     }
 
-    pub fn dot(self, rhs: Self) -> Self {
-        self * rhs
+    pub fn dot(lhs: Self, rhs: Self) -> f32 {
+        (lhs.x * rhs.x) + (lhs.y * rhs.y) + (lhs.z * rhs.z)
     }
 
-    pub fn cross(self, rhs: Self) -> Self {
+    pub fn cross(lhs: Self, rhs: Self) -> Self {
         Vec3 {
-            x: self.y * rhs.z - self.z * rhs.y,
-            y: -(self.x * rhs.z - self.z * rhs.x),
-            z: self.x * rhs.y - self.y * rhs.x,
+            x: lhs.y * rhs.z - lhs.z * rhs.y,
+            y: -(lhs.x * rhs.z - lhs.z * rhs.x),
+            z: lhs.x * rhs.y - lhs.y * rhs.x,
         }
     }
 }
