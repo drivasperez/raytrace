@@ -1,11 +1,11 @@
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 pub struct HitRecord {
-    t: f32,
-    p: Vec3,
-    normal: Vec3,
+    pub t: f32,
+    pub p: Vec3,
+    pub normal: Vec3,
 }
 
 pub trait Hitable {
@@ -15,6 +15,12 @@ pub trait Hitable {
 pub struct Sphere {
     centre: Vec3,
     radius: f32,
+}
+
+impl Sphere {
+    pub fn new(centre: Vec3, radius: f32) -> Self {
+        Sphere { centre, radius }
+    }
 }
 
 impl Hitable for Sphere {
@@ -44,18 +50,18 @@ impl Hitable for Sphere {
     }
 }
 
-impl Hitable for Vec<Box<Hitable>> {
+impl<T: Hitable> Hitable for &[Box<T>] {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool {
         let mut temp_rec = rec.clone();
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
-        for elem in self {
+        self.iter().for_each(|elem| {
             if elem.hit(r, t_min, closest_so_far, &mut temp_rec) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 *rec = temp_rec.clone();
             }
-        }
+        });
         hit_anything
     }
 }

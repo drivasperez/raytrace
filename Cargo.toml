@@ -5,3 +5,4 @@ authors = ["Daniel Rivas Perez <drivas12@googlemail.com>"]
 edition = "2018"
 
 [dependencies]
+rayon = "1.0"
