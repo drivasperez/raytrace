@@ -1,8 +1,8 @@
 #[derive(Debug, Clone, Copy, Default, PartialEq, PartialOrd)]
 pub struct Vec3 {
-    x: f32,
-    y: f32,
-    z: f32,
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
 }
 
 impl std::ops::Add<Vec3> for Vec3 {
@@ -62,6 +62,17 @@ impl std::ops::Mul<f32> for Vec3 {
     }
 }
 
+impl std::ops::Mul<Vec3> for f32 {
+    type Output = Vec3;
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        Vec3 {
+            x: rhs.x * self,
+            y: rhs.y * self,
+            z: rhs.z * self,
+        }
+    }
+}
+
 impl std::ops::Div<f32> for Vec3 {
     type Output = Self;
     fn div(self, rhs: f32) -> Self {
@@ -69,6 +80,17 @@ impl std::ops::Div<f32> for Vec3 {
             x: self.x / rhs,
             y: self.x / rhs,
             z: self.x / rhs,
+        }
+    }
+}
+
+impl std::ops::Div<Vec3> for f32 {
+    type Output = Vec3;
+    fn div(self, rhs: Vec3) -> Vec3 {
+        Vec3 {
+            x: rhs.x / self,
+            y: rhs.y / self,
+            z: rhs.z / self,
         }
     }
 }
@@ -122,6 +144,10 @@ impl std::ops::DivAssign<f32> for Vec3 {
 }
 
 impl Vec3 {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Vec3 { x, y, z }
+    }
+
     pub fn squared_length(&self) -> f32 {
         (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
     }
