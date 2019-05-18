@@ -1,3 +1,4 @@
+mod hitable;
 mod ray;
 mod vec3;
 use ray::Ray;
