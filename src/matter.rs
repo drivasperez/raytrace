@@ -13,7 +13,8 @@ pub trait Material {
     ) -> bool;
 }
 
-struct Lambertian {
+#[derive(Copy, Clone, Default)]
+pub struct Lambertian {
     albedo: Vec3,
 }
 
@@ -32,12 +33,29 @@ impl Material for Lambertian {
     }
 }
 
+impl Lambertian {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Lambertian {
+            albedo: Vec3::new(x, y, z),
+        }
+    }
+}
+
 fn reflect(v: Vec3, n: Vec3) -> Vec3 {
     v - 2. * Vec3::dot(v, n) * n
 }
 
-struct Metal {
+#[derive(Copy, Clone, Default)]
+pub struct Metal {
     albedo: Vec3,
+}
+
+impl Metal {
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Metal {
+            albedo: Vec3::new(x, y, z),
+        }
+    }
 }
 
 impl Material for Metal {
