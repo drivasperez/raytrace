@@ -1,5 +1,6 @@
 mod camera;
 mod hitable;
+mod matter;
 mod ray;
 mod vec3;
 use hitable::Hitable;
