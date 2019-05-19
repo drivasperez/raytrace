@@ -5,7 +5,7 @@ mod ray;
 mod vec3;
 use hitable::Hitable;
 use image;
-use matter::{Lambertian, Metal};
+use matter::Material;
 use rand::Rng;
 use ray::Ray;
 use vec3::Vec3;
@@ -21,22 +21,22 @@ fn main() -> Result<(), std::io::Error> {
         hitable::Sphere::new(
             Vec3::new(0.0, 0.0, -1.),
             0.5,
-            Box::new(Lambertian::new(0.8, 0.3, 0.3)),
+            Material::Lambertian(Vec3::new(0.8, 0.3, 0.3)),
         ),
         hitable::Sphere::new(
             Vec3::new(0.0, -100.5, -1.),
             100.,
-            Box::new(Lambertian::new(0.8, 0.8, 0.8)),
+            Material::Lambertian(Vec3::new(0.8, 0.8, 0.8)),
         ),
         hitable::Sphere::new(
             Vec3::new(1.0, 0.0, -1.0),
             0.5,
-            Box::new(Metal::new(0.8, 0.6, 0.2)),
+            Material::Metal(Vec3::new(0.8, 0.6, 0.2)),
         ),
         hitable::Sphere::new(
             Vec3::new(-1.0, 0.0, -1.0),
             0.5,
-            Box::new(Metal::new(0.8, 0.8, 0.8)),
+            Material::Metal(Vec3::new(0.8, 0.8, 0.8)),
         ),
     ];
     let cam = camera::Camera::default();
@@ -79,6 +79,7 @@ fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
         if depth < 50
             && rec
                 .mat_ptr
+                .unwrap()
                 .scatter(&r, &rec, &mut attenuation, &mut scattered)
         {
             attenuation * colour(scattered, world, depth + 1)

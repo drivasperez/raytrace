@@ -2,36 +2,27 @@ use crate::matter::Material;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
+#[derive(Copy, Clone, Default)]
 pub struct HitRecord {
     pub t: f32,
     pub p: Vec3,
     pub normal: Vec3,
-    pub mat_ptr: Box<Material>,
-}
-
-impl Default for HitRecord {
-    fn default() -> Self {
-        HitRecord {
-            t: 0.0,
-            normal: Vec3::default(),
-            p: Vec3::default(),
-            mat_ptr: Box::new(crate::matter::Lambertian::new(0.0, 0.0, 0.0)),
-        }
-    }
+    pub mat_ptr: Option<Material>,
 }
 
 pub trait Hitable {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool;
+    fn mat_ptr(self) -> Option<Material>;
 }
 
 pub struct Sphere {
     centre: Vec3,
     radius: f32,
-    mat_ptr: Box<Material>,
+    mat_ptr: Material,
 }
 
 impl Sphere {
-    pub fn new(centre: Vec3, radius: f32, mat_ptr: Box<Material>) -> Self {
+    pub fn new(centre: Vec3, radius: f32, mat_ptr: Material) -> Self {
         Sphere {
             centre,
             radius,
@@ -65,18 +56,27 @@ impl Hitable for Sphere {
         };
         false
     }
+
+    fn mat_ptr(self) -> Option<Material> {
+        Some(self.mat_ptr)
+    }
 }
 
 impl<T: Hitable> Hitable for &[T] {
     fn hit(&self, r: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool {
         let mut hit_anything = false;
         let mut closest_so_far = t_max;
-        self.iter().for_each(|elem| {
+        self.iter().for_each(move |elem| {
             if elem.hit(r, t_min, closest_so_far, rec) {
                 hit_anything = true;
                 closest_so_far = rec.t;
+                rec.mat_ptr = elem.mat_ptr();
             }
         });
         hit_anything
+    }
+
+    fn mat_ptr(self) -> Option<Material> {
+        None
     }
 }
