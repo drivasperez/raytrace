@@ -72,21 +72,24 @@ fn main() -> Result<(), std::io::Error> {
 }
 
 fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
-    if let Some(rec) = world.hit(&r, 0.001, std::f32::MAX) {
-        if let Some(mat) = rec.mat_ptr {
-            if depth < 50 {
+    world
+        .hit(&r, 0.001, std::f32::MAX)
+        .and_then(|rec| {
+            if let Some(mat) = rec.mat_ptr {
                 let (attenuation, scattered, should_scatter) = mat.scatter(&r, &rec);
-                if should_scatter {
-                    attenuation * colour(scattered, world, depth + 1)
+                if depth < 50 && should_scatter {
+                    return Some(attenuation * colour(scattered, world, depth + 1));
                 } else {
-                    Vec3::default()
+                    return Some(Vec3::default());
                 }
-            } else {
-                Vec3::default()
             };
-        };
-    }
-    Vec3::default()
+            None
+        })
+        .unwrap_or_else(|| {
+            let unit_direction = Vec3::unit_vector(r.direction());
+            let t = 0.5 * (unit_direction.y + 1.0);
+            (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
+        })
 }
 
 // fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
