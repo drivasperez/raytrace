@@ -12,8 +12,8 @@ use vec3::Vec3;
 
 fn main() -> Result<(), std::io::Error> {
     let mut rng = rand::thread_rng();
-    let nx = 400;
-    let ny = 200;
+    let nx = 1000;
+    let ny = 500;
     let ns = 100;
     let mut imgbuf = image::ImageBuffer::new(nx, ny);
 
@@ -25,14 +25,19 @@ fn main() -> Result<(), std::io::Error> {
             Material::Lambertian(Vec3::new(0.8, 0.8, 0.0)),
         ),
         hitable::Sphere::new(
+            Vec3::new(1., 0., -1.),
+            0.5,
+            Material::Metal(Vec3::new(0.8, 0.6, 0.2), 0.1),
+        ),
+        hitable::Sphere::new(
             Vec3::new(1.0, 0.0, -1.0),
             0.5,
-            Material::Metal(Vec3::new(0.8, 0.6, 0.2), 0.3),
+            Material::Lambertian(Vec3::new(-1., 0.2, 0.5)),
         ),
         hitable::Sphere::new(
             Vec3::new(-1.0, 0.0, -1.0),
-            0.5,
-            Material::Metal(Vec3::new(0.8, 0.8, 0.8), 1.0),
+            0.25,
+            Material::Lambertian(Vec3::new(-1., 0.2, 0.5)),
         ),
     ];
     let cam = camera::Camera::default();
@@ -87,29 +92,6 @@ fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
             (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
         })
 }
-
-// fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
-//     let mut rec = hitable::HitRecord::default();
-
-//     if world.hit(&r, 0.001, std::f32::MAX, &mut rec) {
-//         let mut scattered = Ray::default();
-//         let mut attenuation = Vec3::default();
-
-//         if depth < 50
-//             && rec
-//                 .mat_ptr
-//                 .scatter(&r, &rec, &mut attenuation, &mut scattered)
-//         {
-//             attenuation * colour::<T>(scattered, world, depth + 1)
-//         } else {
-//             Vec3::new(0.0, 0.0, 0.0)
-//         }
-//     } else {
-//         let unit_direction = Vec3::unit_vector(r.direction());
-//         let t = 0.5 * (unit_direction.y + 1.0);
-//         (1.0 - t) * Vec3::new(1.0, 1.0, 1.0) + t * Vec3::new(0.5, 0.7, 1.0)
-//     }
-// }
 
 fn random_in_unit_sphere() -> Vec3 {
     let mut rng = rand::thread_rng();
