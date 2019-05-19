@@ -8,6 +8,7 @@ use image;
 use matter::Material;
 use rand::Rng;
 use ray::Ray;
+use std::f32::consts::PI;
 use vec3::Vec3;
 
 fn main() -> Result<(), std::io::Error> {
@@ -17,30 +18,27 @@ fn main() -> Result<(), std::io::Error> {
     let ns = 100;
     let mut imgbuf = image::ImageBuffer::new(nx, ny);
 
+    let R = (PI / 4.).cos();
+
     let world = vec![
-        hitable::Sphere::new(Vec3::new(0.0, 0.0, -1.), 0.5, Material::Dielectric(1.5)),
         hitable::Sphere::new(
-            Vec3::new(0.0, -100.5, -1.),
-            100.,
-            Material::Lambertian(Vec3::new(0.8, 0.8, 0.0)),
+            Vec3::new(-R, 0., -1.),
+            R,
+            Material::Lambertian(Vec3::new(0.0, 0.0, 1.0)),
         ),
         hitable::Sphere::new(
-            Vec3::new(1., 0., -1.),
-            0.5,
-            Material::Metal(Vec3::new(0.8, 0.6, 0.2), 0.1),
-        ),
-        hitable::Sphere::new(
-            Vec3::new(1.0, 0.0, -1.0),
-            0.5,
-            Material::Lambertian(Vec3::new(-1., 0.2, 0.5)),
-        ),
-        hitable::Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            0.25,
-            Material::Lambertian(Vec3::new(-1., 0.2, 0.5)),
+            Vec3::new(R, 0., -1.),
+            R,
+            Material::Lambertian(Vec3::new(1.0, 0.0, 0.0)),
         ),
     ];
-    let cam = camera::Camera::default();
+    let cam = camera::Camera::new(
+        Vec3::new(-2.0, 2.0, 1.0),
+        Vec3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        90.0,
+        nx as f32 / ny as f32,
+    );
 
     imgbuf.enumerate_pixels_mut().for_each(|(i, j, pixel)| {
         let mut col = Vec3::new(0., 0., 0.);
@@ -50,7 +48,6 @@ fn main() -> Result<(), std::io::Error> {
             let u = (i as f32 + randi) / nx as f32;
             let v = ((ny - j) as f32 + randj) / ny as f32;
             let r = cam.get_ray(u, v);
-            let _p = r.point_at_parameter(2.0);
             col += colour(r, &world, 0);
         });
         col /= ns as f32;
