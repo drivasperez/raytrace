@@ -12,8 +12,8 @@ use vec3::Vec3;
 
 fn main() -> Result<(), std::io::Error> {
     let mut rng = rand::thread_rng();
-    let nx = 200;
-    let ny = 100;
+    let nx = 400;
+    let ny = 200;
     let ns = 100;
     let mut imgbuf = image::ImageBuffer::new(nx, ny);
 
@@ -26,18 +26,14 @@ fn main() -> Result<(), std::io::Error> {
         hitable::Sphere::new(
             Vec3::new(0.0, -100.5, -1.),
             100.,
-            Material::Lambertian(Vec3::new(0.8, 0.8, 0.8)),
+            Material::Lambertian(Vec3::new(0.8, 0.8, 0.0)),
         ),
         hitable::Sphere::new(
             Vec3::new(1.0, 0.0, -1.0),
             0.5,
-            Material::Metal(Vec3::new(0.8, 0.6, 0.2)),
+            Material::Metal(Vec3::new(0.8, 0.6, 0.2), 0.3),
         ),
-        hitable::Sphere::new(
-            Vec3::new(-1.0, 0.0, -1.0),
-            0.5,
-            Material::Metal(Vec3::new(0.8, 0.8, 0.8)),
-        ),
+        hitable::Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, Material::Dielectric(1.5)),
     ];
     let cam = camera::Camera::default();
 
@@ -76,8 +72,8 @@ fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
         .hit(&r, 0.001, std::f32::MAX)
         .and_then(|rec| {
             if let Some(mat) = rec.mat_ptr {
-                let (attenuation, scattered, should_scatter) = mat.scatter(&r, &rec);
-                if depth < 50 && should_scatter {
+                let (attenuation, scattered, did_scatter) = mat.scatter(&r, &rec);
+                if depth < 50 && did_scatter {
                     return Some(attenuation * colour(scattered, world, depth + 1));
                 } else {
                     return Some(Vec3::default());

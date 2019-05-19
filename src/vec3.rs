@@ -29,6 +29,17 @@ impl std::ops::Sub<Vec3> for Vec3 {
     }
 }
 
+impl std::ops::Neg for Vec3 {
+    type Output = Self;
+    fn neg(self) -> Self {
+        Vec3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+
 impl std::ops::Mul<Vec3> for Vec3 {
     type Output = Self;
     fn mul(self, rhs: Self) -> Self {
