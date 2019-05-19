@@ -18,11 +18,7 @@ fn main() -> Result<(), std::io::Error> {
     let mut imgbuf = image::ImageBuffer::new(nx, ny);
 
     let world = vec![
-        hitable::Sphere::new(
-            Vec3::new(0.0, 0.0, -1.),
-            0.5,
-            Material::Lambertian(Vec3::new(0.8, 0.3, 0.3)),
-        ),
+        hitable::Sphere::new(Vec3::new(0.0, 0.0, -1.), 0.5, Material::Dielectric(1.5)),
         hitable::Sphere::new(
             Vec3::new(0.0, -100.5, -1.),
             100.,
@@ -33,7 +29,11 @@ fn main() -> Result<(), std::io::Error> {
             0.5,
             Material::Metal(Vec3::new(0.8, 0.6, 0.2), 0.3),
         ),
-        hitable::Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, Material::Dielectric(1.5)),
+        hitable::Sphere::new(
+            Vec3::new(-1.0, 0.0, -1.0),
+            0.5,
+            Material::Metal(Vec3::new(0.8, 0.8, 0.8), 1.0),
+        ),
     ];
     let cam = camera::Camera::default();
 
