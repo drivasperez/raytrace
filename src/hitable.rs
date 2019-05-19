@@ -10,8 +10,19 @@ pub struct HitRecord {
     pub mat_ptr: Option<Material>,
 }
 
+impl HitRecord {
+    fn new(t: f32, p: Vec3, normal: Vec3, mat_ptr: Option<Material>) -> Self {
+        HitRecord {
+            t,
+            p,
+            normal,
+            mat_ptr,
+        }
+    }
+}
+
 pub trait Hitable {
-    fn hit(&self, r: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord>;
     fn mat_ptr(self) -> Option<Material>;
 }
 
@@ -32,7 +43,7 @@ impl Sphere {
 }
 
 impl Hitable for Sphere {
-    fn hit(&self, r: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
         let oc = r.origin() - self.centre;
         let a = Vec3::dot(r.direction(), r.direction());
         let b = Vec3::dot(oc, r.direction());
@@ -41,20 +52,26 @@ impl Hitable for Sphere {
         if discriminant > 0. {
             let mut temp = (-b - (b * b - a * c).sqrt()) / a;
             if temp < t_max && temp > t_min {
-                rec.t = temp;
-                rec.p = r.point_at_parameter(rec.t);
-                rec.normal = (rec.p - self.centre) / self.radius;
-                return true;
+                let p = r.point_at_parameter(temp);
+                return Some(HitRecord::new(
+                    temp,
+                    p,
+                    (p - self.centre) / self.radius,
+                    Some(self.mat_ptr.clone()),
+                ));
             }
             temp = (-b + (b * b - a * c).sqrt()) / a;
             if temp < t_max && temp > t_min {
-                rec.t = temp;
-                rec.p = r.point_at_parameter(rec.t);
-                rec.normal = (rec.p - self.centre) / self.radius;
-                return true;
+                let p = r.point_at_parameter(temp);
+                return Some(HitRecord::new(
+                    temp,
+                    p,
+                    (p - self.centre) / self.radius,
+                    Some(self.mat_ptr.clone()),
+                ));
             }
         };
-        false
+        None
     }
 
     fn mat_ptr(self) -> Option<Material> {
@@ -63,17 +80,16 @@ impl Hitable for Sphere {
 }
 
 impl<T: Hitable> Hitable for &[T] {
-    fn hit(&self, r: &Ray, t_min: f32, t_max: f32, rec: &mut HitRecord) -> bool {
-        let mut hit_anything = false;
+    fn hit(&self, r: &Ray, t_min: f32, t_max: f32) -> Option<HitRecord> {
+        let mut rec = None;
         let mut closest_so_far = t_max;
-        self.iter().for_each(move |elem| {
-            if elem.hit(r, t_min, closest_so_far, rec) {
-                hit_anything = true;
-                closest_so_far = rec.t;
-                rec.mat_ptr = elem.mat_ptr();
+        self.iter().for_each(|elem| {
+            if let Some(temp) = elem.hit(r, t_min, closest_so_far) {
+                closest_so_far = temp.t;
+                rec = Some(temp);
             }
         });
-        hit_anything
+        rec
     }
 
     fn mat_ptr(self) -> Option<Material> {
