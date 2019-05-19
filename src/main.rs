@@ -73,9 +73,18 @@ fn main() -> Result<(), std::io::Error> {
 
 fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
     let mut rec = hitable::HitRecord::default();
-    if world.hit(&r, 0.0, std::f32::MAX, &mut rec) {
-        let target = rec.p + rec.normal + random_in_unit_sphere();
-        0.5 * colour(Ray::new(rec.p, target - rec.p), world, depth)
+    if world.hit(&r, 0.001, std::f32::MAX, &mut rec) {
+        let mut scattered = Ray::default();
+        let mut attenuation = Vec3::default();
+        if depth < 50
+            && rec
+                .mat_ptr
+                .scatter(&r, &rec, &mut attenuation, &mut scattered)
+        {
+            attenuation * colour(scattered, world, depth + 1)
+        } else {
+            Vec3::default()
+        }
     } else {
         let unit_direction = Vec3::unit_vector(r.direction());
         let t = 0.5 * (unit_direction.y + 1.0);
