@@ -57,7 +57,7 @@ impl Hitable for Sphere {
                     temp,
                     p,
                     (p - self.centre) / self.radius,
-                    Some(self.mat_ptr.clone()),
+                    Some(self.mat_ptr),
                 ));
             }
             temp = (-b + (b * b - a * c).sqrt()) / a;
@@ -67,7 +67,7 @@ impl Hitable for Sphere {
                     temp,
                     p,
                     (p - self.centre) / self.radius,
-                    Some(self.mat_ptr.clone()),
+                    Some(self.mat_ptr),
                 ));
             }
         };

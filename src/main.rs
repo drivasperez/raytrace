@@ -3,40 +3,27 @@ mod hitable;
 mod matter;
 mod ray;
 mod vec3;
-use hitable::Hitable;
+use hitable::{Hitable, Sphere};
 use image;
 use matter::Material;
 use rand::Rng;
 use ray::Ray;
-use std::f32::consts::PI;
 use vec3::Vec3;
 
 fn main() -> Result<(), std::io::Error> {
     let mut rng = rand::thread_rng();
     let nx = 1000;
     let ny = 500;
-    let ns = 100;
+    let ns = 300;
     let mut imgbuf = image::ImageBuffer::new(nx, ny);
 
-    let R = (PI / 4.).cos();
+    let world = random_scene();
 
-    let world = vec![
-        hitable::Sphere::new(
-            Vec3::new(-R, 0., -1.),
-            R,
-            Material::Lambertian(Vec3::new(0.0, 0.0, 1.0)),
-        ),
-        hitable::Sphere::new(
-            Vec3::new(R, 0., -1.),
-            R,
-            Material::Lambertian(Vec3::new(1.0, 0.0, 0.0)),
-        ),
-    ];
     let cam = camera::Camera::new(
-        Vec3::new(-2.0, 2.0, 1.0),
+        Vec3::new(3.0, 3.0, 2.0),
         Vec3::new(0.0, 0.0, -1.0),
         Vec3::new(0.0, 1.0, 0.0),
-        90.0,
+        60.0,
         nx as f32 / ny as f32,
     );
 
@@ -99,4 +86,66 @@ fn random_in_unit_sphere() -> Vec3 {
         p = 2.0 * (Vec3::new(rng.gen(), rng.gen(), rng.gen())) - Vec3::new(1., 1., 1.);
     }
     p
+}
+
+fn random_scene() -> Vec<Sphere> {
+    let mut rng = rand::thread_rng();
+    let mut hit_list = Vec::new();
+    hit_list.push(Sphere::new(
+        Vec3::new(0.0, -1000., 0.0),
+        1000.0,
+        Material::Lambertian(Vec3::new(0.5, 0.5, 0.5)),
+    ));
+
+    for a in -11..11 {
+        for b in -11..11 {
+            let choose_mat: f32 = rng.gen();
+            let (x, y) = (a as f32, b as f32);
+            let shiftx: f32 = rng.gen();
+            let shifty: f32 = rng.gen();
+            let center = Vec3::new(x + 0.9 * shiftx, 0.2, y + 0.9 * shifty);
+            if (center - Vec3::new(4.0, 0.0, 2.0)).length() > 0.9 {
+                if choose_mat < 0.8 {
+                    hit_list.push(Sphere::new(
+                        center,
+                        0.2,
+                        Material::Lambertian(Vec3::new(rng.gen(), rng.gen(), rng.gen())),
+                    ))
+                } else if choose_mat < 0.95 {
+                    hit_list.push(Sphere::new(
+                        center,
+                        0.2,
+                        Material::Metal(
+                            Vec3::new(
+                                0.5 * rng.gen::<f32>(),
+                                0.5 * rng.gen::<f32>(),
+                                0.5 * rng.gen::<f32>(),
+                            ),
+                            0.5 * rng.gen::<f32>(),
+                        ),
+                    ))
+                } else {
+                    hit_list.push(Sphere::new(center, 0.2, Material::Dielectric(1.5)))
+                }
+            };
+        }
+    }
+
+    hit_list.push(Sphere::new(
+        Vec3::new(0.0, 1.0, 0.0),
+        1.0,
+        Material::Dielectric(1.5),
+    ));
+    hit_list.push(Sphere::new(
+        Vec3::new(-4.0, 1.0, 0.0),
+        1.0,
+        Material::Metal(Vec3::new(0.4, 0.2, 0.1), 0.0),
+    ));
+    hit_list.push(Sphere::new(
+        Vec3::new(4.0, 1.0, 0.0),
+        1.0,
+        Material::Metal(Vec3::new(0.7, 0.6, 0.5), 0.0),
+    ));
+
+    hit_list
 }
