@@ -1,62 +1,84 @@
-mod camera;
-mod hitable;
-mod matter;
-mod ray;
-mod vec3;
+pub mod camera;
+pub mod hitable;
+pub mod matter;
+pub mod ray;
+pub mod vec3;
+use cfg_if::cfg_if;
 use hitable::{Hitable, Sphere};
-use image;
 use matter::Material;
 use rand::Rng;
 use ray::Ray;
 use vec3::Vec3;
+use wasm_bindgen::prelude::*;
 
-fn main() -> Result<(), std::io::Error> {
-    let mut rng = rand::thread_rng();
-    let nx = 1000;
-    let ny = 500;
-    let ns = 300;
-    let mut imgbuf = image::ImageBuffer::new(nx, ny);
+cfg_if! {
+    if #[cfg(feature = "wee_alloc")] {
+        extern crate wee_alloc;
+        #[global_allocator]
+        static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+    }
 
-    let world = random_scene();
-
-    let cam = camera::Camera::new(
-        Vec3::new(3.0, 3.0, 2.0),
-        Vec3::new(0.0, 0.0, -1.0),
-        Vec3::new(0.0, 1.0, 0.0),
-        60.0,
-        nx as f32 / ny as f32,
-    );
-
-    imgbuf.enumerate_pixels_mut().for_each(|(i, j, pixel)| {
-        let mut col = Vec3::new(0., 0., 0.);
-        (0..ns).for_each(|_| {
-            let randi: f32 = rng.gen();
-            let randj: f32 = rng.gen();
-            let u = (i as f32 + randi) / nx as f32;
-            let v = ((ny - j) as f32 + randj) / ny as f32;
-            let r = cam.get_ray(u, v);
-            col += colour(r, &world, 0);
-        });
-        col /= ns as f32;
-        col = Vec3 {
-            x: col.x.sqrt(),
-            y: col.y.sqrt(),
-            z: col.z.sqrt(),
-        };
-
-        let ir = (255.99 * col.x) as u8;
-        let ig = (255.99 * col.y) as u8;
-        let ib = (255.99 * col.z) as u8;
-
-        *pixel = image::Rgb([ir, ig, ib]);
-    });
-
-    imgbuf.save("newcool.png")?;
-
-    Ok(())
 }
 
-fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
+#[wasm_bindgen]
+pub struct Pixel(u8, u8, u8);
+
+#[wasm_bindgen]
+pub struct Scene {
+    width: u32,
+    height: u32,
+    pixels: Vec<Pixel>,
+}
+
+#[wasm_bindgen]
+impl Scene {
+    pub fn new(x: usize, y: usize, nx: usize, ny: usize, ns: usize) -> Scene {
+        let mut rng = rand::thread_rng();
+        let capacity = x * y;
+        let world = random_scene();
+        let cam = camera::Camera::new(
+            Vec3::new(3.0, 3.0, 2.0),
+            Vec3::new(0.0, 0.0, -1.0),
+            Vec3::new(0.0, 1.0, 0.0),
+            60.0,
+            nx as f32 / ny as f32,
+        );
+        let mut pixels = Vec::with_capacity(capacity);
+        let mut col = Vec3::new(0., 0., 0.);
+        for i in 0..x {
+            for j in 0..y {
+                for _ in 0..ns {
+                    let randi: f32 = rng.gen();
+                    let randj: f32 = rng.gen();
+                    let u = (i as f32 + randi) / nx as f32;
+                    let v = ((ny - j) as f32 + randj) / ny as f32;
+                    let r = cam.get_ray(u, v);
+                    col += colour(r, &world, 0);
+                }
+                col /= ns as f32;
+                col = Vec3 {
+                    x: col.x.sqrt(),
+                    y: col.y.sqrt(),
+                    z: col.z.sqrt(),
+                };
+
+                let ir = (255.99 * col.x) as u8;
+                let ig = (255.99 * col.y) as u8;
+                let ib = (255.99 * col.z) as u8;
+
+                pixels.push(Pixel(ir, ig, ib));
+            }
+        }
+
+        Scene {
+            width: x as u32,
+            height: y as u32,
+            pixels,
+        }
+    }
+}
+
+pub fn colour<T: hitable::Hitable>(r: Ray, world: &[T], depth: usize) -> Vec3 {
     world
         .hit(&r, 0.001, std::f32::MAX)
         .and_then(|rec| {
@@ -88,7 +110,7 @@ fn random_in_unit_sphere() -> Vec3 {
     p
 }
 
-fn random_scene() -> Vec<Sphere> {
+pub fn random_scene() -> Vec<Sphere> {
     let mut rng = rand::thread_rng();
     let mut hit_list = Vec::new();
     hit_list.push(Sphere::new(
