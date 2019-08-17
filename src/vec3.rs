@@ -1,3 +1,6 @@
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
 #[derive(Debug, Clone, Copy, Default, PartialEq, PartialOrd)]
 pub struct Vec3 {
     pub x: f32,
@@ -143,7 +146,17 @@ impl std::ops::DivAssign<f32> for Vec3 {
     }
 }
 
+#[wasm_bindgen]
 impl Vec3 {
+    pub fn x(&self) -> f32 {
+        self.x
+    }
+    pub fn y(&self) -> f32 {
+        self.y
+    }
+    pub fn z(&self) -> f32 {
+        self.z
+    }
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Vec3 { x, y, z }
     }

@@ -1,7 +1,9 @@
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 use std::f32::consts::PI;
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 pub struct Camera {
     pub lower_left_corner: Vec3,
     pub horizontal: Vec3,
@@ -20,6 +22,7 @@ impl Default for Camera {
     }
 }
 
+#[wasm_bindgen]
 impl Camera {
     pub fn new(look_from: Vec3, look_at: Vec3, vup: Vec3, vfov: f32, aspect: f32) -> Self {
         let theta = vfov * PI / 180.;
@@ -37,7 +40,9 @@ impl Camera {
             origin: look_from,
         }
     }
+}
 
+impl Camera {
     pub fn get_ray(&self, u: f32, v: f32) -> Ray {
         Ray::new(
             self.origin,

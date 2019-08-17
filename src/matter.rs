@@ -2,7 +2,7 @@ use crate::hitable::HitRecord;
 use crate::random_in_unit_sphere;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
-use rand::Rng;
+use js_sys::Math::random;
 
 #[derive(Copy, Clone)]
 pub enum Material {
@@ -59,7 +59,6 @@ fn scatter_metal(albedo: Vec3, fuzz: f32, r_in: &Ray, rec: &HitRecord) -> (Vec3,
 }
 
 fn scatter_dielectric(ref_idx: f32, r_in: &Ray, rec: &HitRecord) -> (Vec3, Ray, bool) {
-    let mut rng = rand::thread_rng();
     let attenuation = Vec3::new(1.0, 1.0, 0.0);
     let reflected = reflect(r_in.direction(), rec.normal);
     let direction_dot_normal = Vec3::dot(r_in.direction(), rec.normal);
@@ -86,7 +85,7 @@ fn scatter_dielectric(ref_idx: f32, r_in: &Ray, rec: &HitRecord) -> (Vec3, Ray, 
         1.0
     };
 
-    let roll: f32 = rng.gen();
+    let roll = random() as f32;
 
     let scattered = if roll < reflect_prob {
         Ray::new(rec.p, reflected)
