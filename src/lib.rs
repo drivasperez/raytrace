@@ -56,8 +56,8 @@ impl Scene {
         self.pixels.clear();
 
         let mut col = Vec3::new(0., 0., 0.);
-        for i in 0..nx {
-            for j in 0..ny {
+        for j in 0..ny {
+            for i in 0..nx {
                 for _ in 0..ns {
                     let randi: f32 = random() as f32;
                     let randj: f32 = random() as f32;
@@ -84,10 +84,29 @@ impl Scene {
 
     pub fn new(nx: usize, ny: usize, ns: usize, sphere_pos: Vec3) -> Scene {
         let capacity = nx * ny;
-        let world = random_scene(sphere_pos);
+        // let world = random_scene(sphere_pos);
+        let world = vec![
+            Sphere::new(
+                Vec3::new(0.0, 0.0, -1.0),
+                0.5,
+                Material::Lambertian(Vec3::new(0.1, 0.2, 0.5)),
+            ),
+            Sphere::new(
+                Vec3::new(0.0, -100.5, -1.0),
+                0.5,
+                Material::Lambertian(Vec3::new(0.8, 0.8, 0.2)),
+            ),
+            Sphere::new(
+                Vec3::new(1.0, 0.0, -1.0),
+                0.5,
+                Material::Metal(Vec3::new(0.8, 0.6, 0.2), 0.5),
+            ),
+            Sphere::new(Vec3::new(-1.0, 0.0, -1.0), 0.5, Material::Dielectric(1.5)),
+            Sphere::new(Vec3::new(-1.0, 0.0, -1.0), -0.45, Material::Dielectric(1.5)),
+        ];
 
         let camera = camera::Camera::new(
-            Vec3::new(3.0, 3.0, 2.0),
+            Vec3::new(-2.0, 2.0, 1.0),
             Vec3::new(0.0, 0.0, -1.0),
             Vec3::new(0.0, 1.0, 0.0),
             60.0,
